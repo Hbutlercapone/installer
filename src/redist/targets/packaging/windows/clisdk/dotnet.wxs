@@ -15,6 +15,7 @@
       <ComponentGroupRef Id="InstallFiles" />
       <ComponentGroupRef Id="AuthoredRegistryKeys_x86node"/>
       <ComponentGroupRef Id="DotnetToolSetup"/>
+      <ComponentRef Id="WorkloadInstallerTypeComp" />
     </Feature>
     <Feature Id="Provider" Absent="disallow" AllowAdvertise="no" Description="Used for Ref Counting" Display="hidden" Level="1" InstallDefault="local" Title="RefCounting" TypicalDefault="install">
       <ComponentRef Id="$(var.DependencyKeyId)" />
@@ -28,12 +29,6 @@
     <Property Id="MSIFASTINSTALL" Value="7" />
     <Property Id="NUGETVERSION" Value="$(var.NugetVersion)" />
     <WixVariable Id="WixUILicenseRtf" Value="$(var.MicrosoftEula)" />
-
-    <Property Id="DOTNETEXE">
-      <DirectorySearch Id="DOTNETPATH" Path="[#DOTNETHOME]">
-        <FileSearch Id="DOTNETEXESEARCH" Name="dotnet.exe" />
-      </DirectorySearch>
-    </Property>
 
     <CustomActionRef Id="WixBroadcastEnvironmentChange" />
 
@@ -49,16 +44,28 @@
                   Impersonate="no"/>
 
     <InstallExecuteSequence>
-      <Custom Action="PropertyAssignPrimeCacheAndTelemetry" Before="QtExecPrimeCacheAndTelemetryTarget" />
-      <Custom Action="QtExecPrimeCacheAndTelemetryTarget" Before="InstallFinalize" />
+      <Custom Action="PropertyAssignPrimeCacheAndTelemetry" Before="QtExecPrimeCacheAndTelemetryTarget">NOT Installed</Custom>
+      <Custom Action="QtExecPrimeCacheAndTelemetryTarget" Before="InstallFinalize">NOT Installed</Custom>
     </InstallExecuteSequence>
   </Product>
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.Program_Files)">
-        <Directory Id="DOTNETHOME" Name="dotnet"/>
+        <Directory Id="DOTNETHOME" Name="dotnet">
+          <Directory Id="MetadataDir" Name="metadata">
+            <Directory Id="WorkloadsDir" Name="workloads">
+              <Directory Id="FeatureBandDir" Name="$(var.SdkFeatureBandVersion)">
+                <Directory Id="InstallerTypeDir" Name="installertype" />
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
       </Directory>
     </Directory>
+    
+    <?if $(var.Platform)~=x64?>
+    <CustomActionRef Id="Set_DOTNETHOME_NON_NATIVE_ARCHITECTURE" />
+    <?endif?>
   </Fragment>
   <Fragment>
     <ComponentGroup Id="DotnetToolSetup">
@@ -66,5 +73,8 @@
         <Environment Id="E_PATH" Name="PATH" Value="%USERPROFILE%\.dotnet\tools" Part="last" Action="set" System="no" />
       </Component>
     </ComponentGroup>
+    <Component Id="WorkloadInstallerTypeComp" Directory="InstallerTypeDir">
+     <File KeyPath="yes" Name="msi" />
+    </Component>
   </Fragment>
 </Wix>

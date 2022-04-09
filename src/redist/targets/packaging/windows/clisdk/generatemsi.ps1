@@ -6,6 +6,7 @@ param(
     [Parameter(Mandatory=$true)][string]$DotnetMSIOutput,
     [Parameter(Mandatory=$true)][string]$WixRoot,
     [Parameter(Mandatory=$true)][string]$ProductMoniker,
+    [Parameter(Mandatory=$true)][string]$SdkFeatureBandVersion,
     [Parameter(Mandatory=$true)][string]$DotnetMSIVersion,
     [Parameter(Mandatory=$true)][string]$SDKBundleVersion,
     [Parameter(Mandatory=$true)][string]$DotnetCLINugetVersion,
@@ -64,6 +65,7 @@ function RunCandle
         -dMicrosoftEula="$PSScriptRoot\dummyeula.rtf" `
         -dProductMoniker="$ProductMoniker" `
         -dBuildVersion="$DotnetMSIVersion" `
+        -dSdkFeatureBandVersion="$SdkFeatureBandVersion" `
         -dSDKBundleVersion="$SDKBundleVersion" `
         -dNugetVersion="$DotnetCLINugetVersion" `
         -dUpgradeCode="$UpgradeCode" `
@@ -71,6 +73,7 @@ function RunCandle
         -arch "$Architecture" `
         -ext WixDependencyExtension.dll `
         "$PSScriptRoot\dotnet.wxs" `
+        "$PSScriptRoot\dotnethome_x64.wxs" `
         "$PSScriptRoot\provider.wxs" `
         "$PSScriptRoot\registrykeys.wxs" `
         $InstallFileswsx
@@ -98,6 +101,7 @@ function RunLight
     $lightOutput = .\light.exe -nologo -ext WixUIExtension -ext WixDependencyExtension -ext WixUtilExtension `
         -cultures:en-us `
         dotnet.wixobj `
+        dotnethome_x64.wixobj `
         provider.wixobj `
         registrykeys.wixobj `
         $InstallFilesWixobj `
